@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 #M1~M5
-void main() {
-  runApp(MyApp());
-}
+void main() => runApp(App());
 
 class MyApp extends StatelessWidget {
   final String userInput = getUserInput(); // 假設使用者輸入為 "'; DROP TABLE users; --"
