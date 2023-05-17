@@ -2,143 +2,130 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-// M1: Improper Platform Usage
-// 在 Android 平台上啟動相機並沒有對 iOS 平台進行處理
-// 如果執行此程式碼的設備不支持 Android 平台，程式將崩潰
-void openCamera() {
-  if (Platform.isAndroid) {
-    ImagePicker.pickImage(source: ImageSource.camera);
+#M1~M5
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  final String userInput = getUserInput(); // 假設使用者輸入為 "'; DROP TABLE users; --"
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Text(
+            "Welcome, $userInput!", // M1: Improper Platform Usage - 未對使用者輸入進行適當的驗證和過濾
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      ),
+    );
   }
-}
 
-// M2: Insecure Data Storage
-// 將密碼以明文形式存儲在本地設備上，容易被竊取
-void savePassword(String password) async {
-  final prefs = await SharedPreferences.getInstance();
-  prefs.setString('password', password);
-}
-
-// M3: Insecure Communication
-// 使用 HTTP 協議進行網路請求，可能被攔截或篡改
-Future<List<User>> getUsers() async {
-  final response = await http.get('http://example.com/users');
-  if (response.statusCode == 200) {
-    final jsonData = json.decode(response.body);
-    return (jsonData['data'] as List)
-        .map((user) => User.fromJson(user))
-        .toList();
-  } else {
-    throw Exception('Failed to load users');
+  String getUserInput() {
+    // M2: Insecure Data Storage - 不安全的數據存儲，將敏感數據明文存儲在本地變數
+    String userInput = "'; DROP TABLE users; --";
+    return userInput;
   }
-}
 
-// M4: Insecure Authentication
-// 實現自己的身份驗證機制，但存儲密碼時沒有使用適當的加密算法
-// 密碼以明文形式存儲在本地設備上，容易被竊取
-class AuthService {
-  Future<String> login(String username, String password) async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedPassword = prefs.getString('password');
-    if (password == savedPassword) {
-      return 'token';
+  void sendDataOverHttp() {
+    String password = "secretpassword";
+
+    // M3: Insecure Communication - 不安全的通信，未使用安全的協議（例如 HTTPS）進行網絡通信
+    var url = 'http://example.com/login?password=$password';
+    // ...
+  }
+
+  void authenticateUser(String username, String password) {
+    // M4: Insecure Authentication - 不正確的身份驗證，未正確實施身份驗證機制
+    if (username == "admin" && password == "password123") {
+      grantAccess();
     } else {
-      throw Exception('Invalid username or password');
+      denyAccess();
     }
   }
+
+  void encryptData(String data) {
+    // M5: Insufficient Cryptography - 不足的加密措施，使用不安全的加密算法或弱密鑰
+    var encryptedData = weakEncrypt(data);
+    // ...
+  }
+
+  String weakEncrypt(String data) {
+    // 使用不安全的加密算法（僅用於示範）
+    return data.replaceAll('a', '1').replaceAll('b', '2');
+  }
+
+  void grantAccess() {
+    print("Access granted!");
+  }
+
+  void denyAccess() {
+    print("Access denied!");
+  }
 }
 
-// M5: Insufficient Cryptography
-// 使用容易被攻擊者破解的加密算法加密敏感數據
-String encrypt(String plaintext) {
-  final key = 'my_secret_key';
-  final iv = 'my_secret_iv';
-  final encrypter = Encrypter(AES(Key.fromUtf8(key), mode: AESMode.cbc),
-      iv: IV.fromUtf8(iv));
-  return encrypter.encrypt(plaintext).base64;
-}
+
+//M6~M10
+import 'dart:convert';
 
 // M6: Insecure Authorization
-// 在使用者登錄後，未進行角色權限檢查，導致未經授權的用戶可以訪問敏感功能或資源
-void viewAdminDashboard() {
-  if (currentUser.role == 'admin') {
-    Navigator.pushNamed(context, '/admin_dashboard');
+// 不正確的身份驗證機制，例如簡單的用戶名和密碼驗證
+void insecureAuthentication(String username, String password) {
+  // 實際場景中，這裡應該是從數據庫或其他安全的存儲中獲取用戶名和密碼
+  if (username == "admin" && password == "password") {
+    print("Authentication succeeded!");
   } else {
-    throw Exception('Unauthorized access');
+    print("Authentication failed!");
   }
 }
 
 // M7: Poor Code Quality
-// 使用 eval() 函數執行來自網路的字串，可能被惡意用戶利用
-// 不良寫法 1：使用不必要的變數
-void calculateSum(List<int> numbers) {
-  int sum = 0;
-  for (int i = 0; i < numbers.length; i++) {
-    sum += numbers[i];
-  }
-  print(sum); // 印出 sum
+// 密碼直接硬編碼在程式碼中
+String getHardcodedPassword() {
+  String password = "password123";
+  return password;
 }
 
-// 不良寫法 2：使用硬編碼的數據
-void processUserData(String username) {
-  if (username == "admin") {
-    // ...
-  }
-}
+// M8: Code Tampering
+// 未對應用程式進行程式簽名或校驗，使得攻擊者能夠修改應用程式的程式
+void tamperCode() {
+  // 實際場景中，應該對應用程式進行程式簽名或校驗，以檢測代碼是否被修改
+  // 以下是示例中的程式簽名部分，供參考
+  String originalCodeHash = "ab12cd34ef56"; // 實際場景中，應從可靠的來源獲取原始程式碼的哈希值
+  String currentCodeHash = calculateCodeHash(); // 實際場景中，應計算目前程式碼的哈希值
 
-// 不良寫法 3：忽略錯誤處理
-void readFile(String filePath) {
-  var file = File(filePath);
-  var contents = file.readAsStringSync();
-  print(contents);
-}
-
-// 不良寫法 4：過度依賴 eval 或 Function()
-void executeDynamicCode(String code) {
-  var result = eval(code); // 這裡 eval 會執行任意的 Dart 代碼
-  print(result);
-}
-
-
-// M8: Code Tampering - 未對應用程式進行代碼簽名或校驗，使得攻擊者能夠修改應用程式的代碼
-// 不正確的寫法：未進行代碼簽名驗證
-void verifyAppIntegrity() {
-  // 在此示例中，假設將應用程式的代碼簽名存儲在變數中
-  String appSignature = "0123456789abcdef";
-
-  // 攻擊者可能會修改應用程式的代碼
-  // 這裡只是模擬攻擊者修改代碼的行為
-  String modifiedCode = "print('Hello, world!');";
-
-  // 未進行代碼簽名驗證，導致攻擊者修改的代碼被執行
-  if (appSignature == modifiedCode) {
-    eval(modifiedCode);
+  if (originalCodeHash == currentCodeHash) {
+    print("Code integrity verified. The code has not been tampered with.");
   } else {
-    print("Invalid app integrity");
+    print("Warning: Code integrity compromised. The code may have been tampered with!");
   }
+ }
+
+// M9: Reverse Engineering
+// 程式未經過混淆，容易被反編譯
+// 在實際場景中，應該使用專業的工具對程式進行混淆
+String getPasswordFromObfuscatedCode() {
+  String obfuscatedCode =
+      "YXNkZmFzZGZhc2RmYXNkZg=="; // 實際場景中，這裡應該是混淆過的程式
+  String decodedPassword = utf8.decode(base64.decode(obfuscatedCode));
+  return decodedPassword;
 }
 
-// M9: Reverse Engineering - 未對原始碼進行適當的保護措施，使得攻擊者能夠輕鬆地進行逆向工程
-
-// 不正確的寫法：未實施代碼混淆
-class SecretKey {
-  // 密鑰在原始碼中以明文形式存儲
-  static final String key = "supersecretkey";
-}
-
-void useSecretKey() {
-  // 攻擊者可以輕易地查看原始碼並獲取密鑰
-  print("Secret Key: ${SecretKey.key}");
-}
-
-// M10: Extraneous Functionality - 在生產環境中啟用除錯模式，使得攻擊者可以獲取更多敏感信息或利用漏洞
-
-// 不正確的寫法：在生產環境中保留除錯日誌
+// M10: Extraneous Functionality
+// 在生產環境中啟用除錯模式，使得攻擊者可以獲取更多敏感資訊或利用漏洞
 void enableDebugMode() {
-  // 在此示例中，假設 DEBUG_MODE 是一個全局變數，用於控制除錯功能
-  const DEBUG_MODE = true;
+  // 實際場景中，應禁用生產環境中的除錯模式，以減少攻擊面和敏感資訊的洩露
+  // 以下是示例中的除錯模式啟用部分，供參考
+  bool isDebugModeEnabled = true; // 實際場景中，應從配置或設置中獲取是否啟用除錯模式的值
 
-  // 不應該在生產環境中啟用除錯模式
-  if (DEBUG_MODE) {
-    print("Debug information: ...");
+  if (isDebugModeEnabled) {
+    print("Warning: Debug mode is enabled. Sensitive information may be exposed!");
+  // 進行除錯相關的操作，例如日誌記錄、顯示敏感資訊等
+  } else {
+  // 在生產環境中，應該禁用除錯相關的操作
+    print("Debug mode is disabled. No sensitive information will be exposed.");
   }
-}
+ }
